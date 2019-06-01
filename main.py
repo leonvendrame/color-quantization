@@ -5,6 +5,11 @@ import sys
 import itertools
 import numpy as np
 import cv2 as ocv
+import random
+
+def minor_distance(image, sets):
+    print(None)
+    #calcular distancia
 
 def main():
     color_number = sys.argv[1]
@@ -14,19 +19,23 @@ def main():
     # ocv.waitKey(0)
     # ocv.destroyAllWindows()
 
-    a = np.linspace(0, 255, 5)
-    b = np.linspace(0, 255, 3)
-    c = np.linspace(0, 255, 2)
+    red = np.linspace(0, 255, 5)
+    green = np.linspace(0, 255, 3)
+    blue = np.linspace(0, 255, 2)
 
-    sets = list(itertools.product(a, b, c))
-    for i in range(len(sets)):
-        sets[i] = list(sets[i])
+    sets = list(itertools.product(blue, green, red))
+    sets = np.array(sets)
 
-    print(len(sets))
+    image[1:100:1,1:100:1] = sets[np.random.randint(0, 28)]
+    # for i in f:
+    #     print(i)
 
+    # image[:,:] = minor_distance
 
-    # print(a, b)
-    # print(d)
+    ocv.imshow("image", image)
+    ocv.waitKey(0)
+    ocv.destroyAllWindows()
+
     # cv2.imwrite('messigray.png',img)
 
 if __name__ == "__main__":
