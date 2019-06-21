@@ -2,46 +2,53 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import itertools
-import numpy as np
-import cv2 as ocv
-import random
+import cv2 as cv
+import argparse
+import quantizer as qnt
+from helpers import psnr
 
-def minor_distance(pixel, sets):
-    minor_distance_set = sets[0]
-    minor_distance = 9999999
-    for _set in sets:
-        distance = np.linalg.norm(pixel-_set)
-        if minor_distance > distance:
-            minor_distance = distance
-            minor_distance_set = _set
 
-    return minor_distance_set
+def read_args():
+    parser = argparse.ArgumentParser(
+        description='Performs image color quantization.')
+    parser.add_argument('-i', dest='input', type=str,
+                        help='Input image path', required=True)
+    parser.add_argument('-o', dest='output', type=str,
+                        help='Output image path to write the result')
+    parser.add_argument('-a', dest='alg', type=str, choices=['simple', 'uniform', 'mediancut'],
+                        default='uniform', help='Quantization algorithm to be used.')
+    parser.add_argument('-n', dest='number', type=int, default='256',
+                        help='Number of colors to be used in quantization.')
+    return parser.parse_args()
+
 
 def main():
-    color_number = sys.argv[1]
-    image_name = sys.argv[2]
-    image = ocv.imread(image_name, 1)
-    # ocv.imshow("image", image)
-    # ocv.waitKey(0)
-    # ocv.destroyAllWindows()
+    args = read_args()
+    img_path = args.input
+    alg = args.alg
+    n = args.number
 
-    red = np.linspace(0, 255, 3)
-    green = np.linspace(0, 255, 3)
-    blue = np.linspace(0, 255, 3)
+    img = cv.imread(img_path)
 
-    sets = list(itertools.product(blue, green, red))
-    sets = np.array(sets)
+    if alg == 'simple':
+        img_qnt = qnt.simple(img, n)
+    elif alg == 'uniform':
+        img_qnt = qnt.uniform(img, n)
+    else:
+        img_qnt = qnt.median_cut(img, n)
 
-    for i in range(image.shape[0]):
-        for j in range(image.shape[1]):
-            image[i][j] = minor_distance(image[i][j], sets)
+    if args.output is not None:
+        cv.imwrite(args.output, img_qnt)
 
-    ocv.imshow("image", image)
-    ocv.waitKey(0)
-    ocv.destroyAllWindows()
+    cpsrn = psnr(img, img_qnt)
+    print('Color Peak Signal to Noise-Ratio: %f' % cpsrn)
 
-    # cv2.imwrite('messigray.png',img)
+    cv.imshow('img input', img)
+    cv.imshow('img output', img_qnt)
+
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()
